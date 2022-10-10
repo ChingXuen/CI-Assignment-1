@@ -5,10 +5,7 @@ class Shop:
     def __init__(self, name):
         self.name = name
         self.roads = []
-        self.coordinates = []
     
-    def set_coordinates(self, coordinates):
-        self.coordinates = coordinates
     
     def add_road(self, road):
         if road not in self.roads:
@@ -79,8 +76,6 @@ class Ant:
                 
             # Select road based on roulette wheel method 
             road_chosen = self.select_road(current_roads)
-
-            #print(str(self.path[-1].connected_shops[0].name) + ' ' + str(self.path[-1].connected_shops[1].name))
             
             # Add Shop to the list of shops based on road chosen
             self.add_shop(road_chosen)
@@ -312,19 +307,17 @@ if __name__ == "__main__":
     shops = {} # Create dictionary
     for name in location_list:
         shops[name] = Shop(name)     # Create Shop objects and place in dictionary
-        #shops[name].set_coordinates([coord1, coord2])
         
     roads = []
     for shop1, shop2, cost, crowd, promoter in step_cost:
         road = Road([shops[shop1], shops[shop2]], cost, crowd, promoter) # Create Road objects
         shops[shop1].add_road(road)
-        shops[shop2].add_road(road)                    # Add road between cities to City object
+        shops[shop2].add_road(road)                    # Add road between shops to Shop object
         roads.append(road)
         
     # Define origin and destination shops 
     origin = shops["Main Entrance"]
     destination = shops["Exit"]
-    #intermediate_shops = [shops["Ben's Cafe"], shops["Papa Cheah Pharmacy"], shops["Uncle Marcus"], shops["Ching's Fashion"]]
     intermediate_shops = [shops["Ben's Cafe"], shops["Uncle Marcus"], shops["Papa Cheah Pharmacy"], shops["Ching's Fashion"]]
     atriums = [shops["SA"], shops["WA"], shops["EA"], shops["NA"]]
     
