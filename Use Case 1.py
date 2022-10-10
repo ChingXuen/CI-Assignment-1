@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 import random
 
 class Shop:
     def __init__(self, name):
         self.name = name
         self.roads = []
-    
     
     def add_road(self, road):
         if road not in self.roads:
@@ -17,7 +15,7 @@ class Road:
         self.cost = cost
         self.pheromone = pheromone
         self.crowd = crowd      # crowded is 50, not crowded is 1
-        self.promoter = promoter
+        self.promoter = promoter   # promoter area is 50, else is 1
         
     def set_pheromone(self, pheromone):
         self.pheromone = pheromone
@@ -34,28 +32,9 @@ class Road:
                 # 2. deposit pheromone using the inveresely proportionate relationship between path length and deposited pheromone
                 if all(shop in ant.shops for shop in intermediate_shops):
                     self.pheromone += 1 / (ant.get_path_length() ** 1) 
-                    #self.pheromone += 1 / (ant.get_total_crowd() ** 1)   
-                    #self.pheromone += 1 / (ant.get_total_promoter() ** 1) 
                 else:
                     self.pheromone += 1 / (ant.get_path_length() ** 15)
-                    #self.pheromone += 1 / (ant.get_total_crowd() ** 15)
-                    #self.pheromone += 1 / (ant.get_total_promoter() ** 15)
 
-    # considers 3 factors - total path cost, crowd, and promoter
-    def deposit_pheromone_2(self, ants, intermediate_shops):
-        # 1. search for ants that uses the road
-        for ant in ants:
-            if self in ant.path:
-                # 2. deposit pheromone using the inveresely proportionate relationship between path length and deposited pheromone
-                if all(shop in ant.shops for shop in intermediate_shops):
-                    #self.pheromone += 1 / (ant.get_path_length() ** 1) 
-                    self.pheromone += 1 / (((ant.get_path_length() ** 1) * 0.5) + ((ant.get_total_crowd()**1) * 0.3) + ((ant.get_total_promoter()**1) * 0.2))
-                    #self.pheromone += 1 / (ant.get_total_promoter() ** 1)
-                else:
-                    #self.pheromone += 1 / (ant.get_path_length() ** 1000)
-                    self.pheromone += 1 / (((ant.get_path_length() ** 15) * 0.5) + ((ant.get_total_crowd()**15) * 0.3) + ((ant.get_total_promoter()**15) * 0.2))                    
-                    #self.pheromone += 1 / (ant.get_total_promoter() ** 1000)
-                
 class Ant:
     def __init__(self):
         self.shops = []     # Shops that the ant passes through, in sequence
@@ -67,7 +46,6 @@ class Ant:
         self.shops.append(origin)
         # 2. if the last shop is not destination and shops do not contain all intermediate shops, search for the next shop to go
         while (self.shops[-1] != destination) or (all(shop in self.shops for shop in intermediate_shops) == False):
-        #for i in range(20):
             current_shop = self.shops[-1]
             current_roads = []
             
@@ -92,66 +70,21 @@ class Ant:
         
     # Removes Loopy Paths in shops and path lists
     def remove_loopy_paths(self, intermediate_shops):  
-        # 1.0 - remove all in between if no intermediate shop in between
-        # indexes = []
-        # n = len(self.shops)
-        
-        # for i in range(n):
-        #     for j in range(n):       # if found duplicate, and there is no intermediate shop in between them
-        #         if (self.shops[i]) == self.shops[j] and (i < j) and (any(shop in self.shops[i:j] for shop in intermediate_shops) == False) and all(i>=sl[1] for sl in indexes):
-        #             indexes.append([i,j])
-        #             break
-                
-        # print(indexes)
-        # for w in range(len(indexes)):
-        #       del self.shops[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
-        #       del self.path[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
-    
-        # 2.0 - remove all in between if intermediate shop duplicate
+        # remove all in between if intermediate shop duplicate
         indexes = []
         n = len(self.shops)
         
         for i in range(n):
-            for j in range(n):       # if intermediate shop duplicate, remove all in between
+            for j in range(n):       # if intermediate shop duplicate, take note of index
                 if (self.shops[i]) == self.shops[j] and (i < j) and (self.shops[i] in intermediate_shops) and all(i>=sl[1] for sl in indexes):
                     indexes.append([i,j])
                     break
                 
         print(indexes)
-        for w in range(len(indexes)):
-              del self.shops[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
-              del self.path[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
+        for w in range(len(indexes)):    # delete duplicates based on index recorded
+            del self.shops[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
+            del self.path[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
         
-        # # 3.0 - remove all in between unless there is atrium 
-        # indexes = []
-        # n = len(self.shops)
-        
-        # for i in range(n):
-        #     for j in range(n):       # if duplicate, remove all in between unless there is atrium in between
-        #         if (self.shops[i]) == self.shops[j] and (i < j) and all(i>=sl[1] for sl in indexes) and (any(shop in self.shops[i:j] for shop in atriums) == False):
-        #             indexes.append([i,j])
-        #             break
-                
-        # print(indexes)
-        # for w in range(len(indexes)):
-        #       del self.shops[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
-        #       del self.path[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
-        
-        # # 4.0 - remove all duplicates
-        # indexes = []
-        # n = len(self.shops)
-        
-        # for i in range(n):
-        #     for j in range(n):       # if intermediate shop duplicate, remove all in between
-        #         if (self.shops[i]) == self.shops[j] and (i < j) and all(i>=sl[1] for sl in indexes):
-        #             indexes.append([i,j])
-        #             break
-                
-        # print(indexes)
-        # for w in range(len(indexes)):
-        #       del self.shops[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
-        #       del self.path[indexes[len(indexes)-1-w][0]: indexes[len(indexes)-1-w][1]]
-                
     # Calculate path length of each ant 
     def get_path_length(self):
         # Calculate path length based on self.path
@@ -274,14 +207,14 @@ def get_solution(ants):
     return solution
 
 if __name__ == "__main__":
-    location_list = [ # name
+    location_list = [ # name of all shops
       'Main Entrance', "Ben's Cafe", "Papa Cheah Pharmacy", "Toilet",
       "Uncle Marcus", "Ming's Iceland", 'WA', 'EA', "SA", "NA",
       "Ching's Fashion", "Richardson", "Exit", "Manesh Banana Leaf",
       "Lucas Fun Time", "Alex Swag Wear", "Elizabeth's Hair Care"
     ]
     
-    step_cost = [
+    step_cost = [ # [Shop 1, Shop 2, Path Length, Crowd Size, Promotion Area]
       ['Main Entrance', "Ben's Cafe", 30, 50, 1], ['Main Entrance', "SA", 35, 50, 1],
       ['Main Entrance', "Papa Cheah Pharmacy", 45, 1, 1], ["Ben's Cafe", "Papa Cheah Pharmacy", 65, 1, 1],
       ["Ben's Cafe", "SA", 55, 50, 1], ["Papa Cheah Pharmacy", "SA", 40, 1, 1],
@@ -315,10 +248,12 @@ if __name__ == "__main__":
         shops[shop2].add_road(road)                    # Add road between shops to Shop object
         roads.append(road)
         
-    # Define origin and destination shops 
+    # Define origin, destination, intermediate shops, and atriums
     origin = shops["Main Entrance"]
     destination = shops["Exit"]
-    intermediate_shops = [shops["Ben's Cafe"], shops["Uncle Marcus"], shops["Papa Cheah Pharmacy"], shops["Ching's Fashion"]]
+    intermediate_shops = [shops["Ben's Cafe"], shops["Uncle Marcus"], shops["Papa Cheah Pharmacy"], shops["Ching's Fashion"], shops["Richardson"]]
+    #intermediate_shops = [shops["Ben's Cafe"], shops["Uncle Marcus"], shops["Papa Cheah Pharmacy"], shops["Ching's Fashion"], shops["Richardson"]]
+    
     atriums = [shops["SA"], shops["WA"], shops["EA"], shops["NA"]]
     
     # Parameters Initilization
@@ -357,8 +292,6 @@ if __name__ == "__main__":
 
             # Deposit the pheromone - ONLY based on total path cost
             road.deposit_pheromone(ants, intermediate_shops)
-            # Deposit the pheromone - 3 FACTORS together 
-            #road.deposit_pheromone_2(ants, intermediate_shops)
             
         # increase iteration count
         iteration += 1
@@ -375,7 +308,6 @@ if __name__ == "__main__":
                 print(solution[1][i].name)
 
     print('Path Cost:', solution[2])
-    print('Total Crowd:', solution[3])
-    print('Total Promoter:', solution[4])
+
 
     
